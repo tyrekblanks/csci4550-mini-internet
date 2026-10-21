@@ -19,14 +19,22 @@
             "virtual_address":"R1",
             "UDP_host":"127.0.0.1",
             "UDP_port":5003,
-            "neighbors":["Host1","RouterB", "RouterC"]
+            "neighbors":["Host1","RouterB", "RouterC"],
+            "routes": {
+                "H1": ["Host1"],
+                "H2": ["RouterB"]
+            }
         },
         "RouterB": {
             "type":"router",
             "virtual_address":"R2",
             "UDP_host":"127.0.0.1",
             "UDP_port":5004,
-            "neighbors":["RouterA","RouterD"]
+            "neighbors":["RouterA","RouterD"],
+            "routes": {
+                "H1": ["RouterA"],
+                "H2": ["RouterD"]
+            }
         },
         "RouterC": {
             "type":"router",
@@ -40,7 +48,11 @@
             "virtual_address":"R4",
             "UDP_host":"127.0.0.1",
             "UDP_port":5006,
-            "neighbors":["Host2","RouterB", "RouterC"]
+            "neighbors":["Host2","RouterB", "RouterC"],
+            "routes": {
+                "H1": ["RouterB"],
+                "H2": ["Host2"]
+            }
         }
     }
 }
