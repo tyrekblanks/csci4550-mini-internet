@@ -2,56 +2,56 @@
     "devices": {
         "Host1": {
             "type":"host",
-            "virtual_address":"H1",
+            "virtual_address":1,
             "UDP_host":"127.0.0.1",
             "UDP_port":5001,
             "neighbors":["RouterA"]
         },
         "Host2": {
             "type":"host",
-            "virtual_address":"H2",
+            "virtual_address":2,
             "UDP_host":"127.0.0.1",
             "UDP_port":5002,
             "neighbors":["RouterD"]
         },
         "RouterA": {
             "type":"router",
-            "virtual_address":"R1",
+            "virtual_address":101,
             "UDP_host":"127.0.0.1",
             "UDP_port":5003,
             "neighbors":["Host1","RouterB", "RouterC"],
             "routes": {
-                "H1": ["Host1"],
-                "H2": ["RouterB"]
+                "1": ["Host1"],
+                "2": ["RouterB"]
             }
         },
         "RouterB": {
             "type":"router",
-            "virtual_address":"R2",
+            "virtual_address":102,
             "UDP_host":"127.0.0.1",
             "UDP_port":5004,
             "neighbors":["RouterA","RouterD"],
             "routes": {
-                "H1": ["RouterA"],
-                "H2": ["RouterD"]
+                "1": ["RouterA"],
+                "2": ["RouterD"]
             }
         },
         "RouterC": {
             "type":"router",
-            "virtual_address":"R3",
+            "virtual_address":103,
             "UDP_host":"127.0.0.1",
             "UDP_port":5005,
             "neighbors":["RouterA","RouterD"]
         },
         "RouterD": {
             "type":"router",
-            "virtual_address":"R4",
+            "virtual_address":104,
             "UDP_host":"127.0.0.1",
             "UDP_port":5006,
             "neighbors":["Host2","RouterB", "RouterC"],
             "routes": {
-                "H1": ["RouterB"],
-                "H2": ["Host2"]
+                "1": ["RouterB"],
+                "2": ["Host2"]
             }
         }
     }
