@@ -1,6 +1,7 @@
 import json
 import sys
 import socket
+from datetime import datetime
 from packet import parse_packet, create_packet
 
 if len(sys.argv) < 2:
@@ -43,6 +44,23 @@ udp_port = device["UDP_port"]
 neighbors = device["neighbors"]
 routing_table = device.get("routes", {})
 
+#logging helper
+def log_discard(reason, packet=None):
+    timestamp = datetime.now().isoformat(timespec="seconds")
+
+    if packet is None:
+        print(
+            f"[{timestamp}] DISCARD at {device_name}: {reason}"
+        )
+    else:
+        print(
+            f"[{timestamp}] DISCARD at {device_name}: {reason} | "
+            f"msg_id={packet['msg_id']} | "
+            f"src={packet['src']} | "
+            f"dst={packet['dst']} | "
+            f"hop_limit={packet['hop_limit']}"
+        )
+
 #socket setup
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind(("127.0.0.1", udp_port))
@@ -61,7 +79,7 @@ while True:
     try:
         packet = parse_packet(data)
     except (ValueError, KeyError, TypeError) as error:
-        print(f"DISCARD: malformed packet at {device_name}: {error}")
+        log_discard(f"malformed packet: {error}")
         continue
 
     destination = packet["dst"]
@@ -69,10 +87,7 @@ while True:
 
     # 2. Check the hop limit before forwarding
     if hop_limit <= 1:
-        print(
-            f"DISCARD: hop limit exhausted at {device_name}, "
-            f"destination={destination}"
-        )
+        log_discard("hop limit exhausted", packet)
         continue
 
     # 3. Find the destination in the routing table.
@@ -80,33 +95,24 @@ while True:
     next_hop = routing_table.get(str(destination))
 
     if next_hop is None:
-        print(
-            f"DISCARD: unknown destination {destination} "
-            f"at {device_name}"
-        )
+        log_discard("unknown destination", packet)
         continue
 
     # 4. Get and validate the next-hop neighbor
     if not isinstance(next_hop, list) or len(next_hop) == 0:
-        print(f"DISCARD: invalid next hop at {device_name}")
+        log_discard("invalid next hop", packet)
         continue
 
     next_hop_name = next_hop[0]
 
     if next_hop_name not in neighbors:
-        print(
-            f"DISCARD: invalid next hop {next_hop_name} "
-            f"at {device_name}"
-        )
+        log_discard("invalid next hop", packet)
         continue
 
     next_hop_device = devices.get(next_hop_name)
 
     if next_hop_device is None:
-        print(
-            f"DISCARD: next hop {next_hop_name} "
-            f"is missing from configuration"
-        )
+        log_discard("next hop missing from configuration", packet)
         continue
 
     # 5. Create the forwarded packet with a decremented hop limit
