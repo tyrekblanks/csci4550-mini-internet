@@ -2,14 +2,29 @@ import json
 import sys
 import socket
 
-with open("config.json", "r") as file:
-    config = json.load(file)
-
 if len(sys.argv) < 2:
-    print("Usage: python3 router.py <device_name>")
+    print("Usage: python3 router.py <device_name> [config_file]")
     sys.exit()
 
 device_name = sys.argv[1]
+
+if len(sys.argv) > 2:
+    config_file = sys.argv[2]
+else:
+    config_file = "config.json"
+
+try:
+    with open(config_file, "r") as file:
+        config = json.load(file)
+
+except FileNotFoundError:
+    print(f"Error: config file '{config_file}' not found")
+    sys.exit()
+
+except json.JSONDecodeError:
+    print(f"Error: config file '{config_file}' contains invalid JSON")
+    sys.exit()
+
 devices = config["devices"]
 
 if device_name not in devices:
