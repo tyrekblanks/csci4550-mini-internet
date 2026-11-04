@@ -4,8 +4,8 @@ import socket
 from datetime import datetime
 from packet import create_packet, parse_packet, REQUEST, RESPONSE
 
-if len(sys.argv) > 3:
-    config_file = sys.argv[3]
+if len(sys.argv) > 4:
+    config_file = sys.argv[4]
 else:
     config_file = "config.json"
 
@@ -13,11 +13,12 @@ with open(config_file, "r") as file:
     config = json.load(file)
 
 if len(sys.argv) < 2:
-    print("Usage: python3 host.py <device_name> <send|listen> [config_file]")
+    print("Usage: python3 host.py <device_name> <send|listen> [probe_count] [config_file]")
     sys.exit()
 
 device_name = sys.argv[1]
 mode = sys.argv[2] if len(sys.argv) > 2 else "listen"
+probe_count = int(sys.argv[3]) if len(sys.argv) > 3 else 1
 devices = config["devices"]
 run_id = config.get("run_id", "default-run")
 
@@ -77,52 +78,53 @@ sock.bind(("127.0.0.1", udp_port))
 sock.settimeout(5.0)
 
 if mode == "send":
-    # The selected host sends a request to its peer.
+    # The selected host sends requests to its peer.
     message = b"hello router"
 
-    packet_data = create_packet(
-        src=virtual_address,
-        dst=peer_address,
-        hop_limit=16,
-        msg_type=REQUEST,
-        msg_id=1,
-        payload=message
-    )
-
-    sock.sendto(packet_data, (neighbor_host, neighbor_port))
-
-    log_event(
-        "send",
-        {
-            "msg_id": 1,
-            "msg_type": REQUEST,
-            "src": virtual_address,
-            "dst": peer_address,
-            "hop_limit": 16,
-        },
-        details=f"sent request to {neighbor_name}"
-    )
-
-    try:
-        data, address = sock.recvfrom(1200)
-        packet = parse_packet(data)
-
-        log_event(
-            "receive",
-            packet,
-            details=f"received from UDP endpoint {address}"
+    for msg_id in range(1, probe_count + 1):
+        packet_data = create_packet(
+            src=virtual_address,
+            dst=peer_address,
+            hop_limit=16,
+            msg_type=REQUEST,
+            msg_id=msg_id,
+            payload=message
         )
 
-        if packet["dst"] != virtual_address:
-            print(f"{device_name}: received a packet for another host")
-        elif packet["msg_type"] == RESPONSE:
-            print(f"{device_name} received:", packet["payload"].decode("utf-8"))
+        sock.sendto(packet_data, (neighbor_host, neighbor_port))
 
-    except socket.timeout:
         log_event(
-            "timeout",
-            details="did not receive a reply within 5 seconds"
+            "send",
+            {
+                "msg_id": msg_id,
+                "msg_type": REQUEST,
+                "src": virtual_address,
+                "dst": peer_address,
+                "hop_limit": 16,
+            },
+            details=f"sent request to {neighbor_name}"
         )
+
+        try:
+            data, address = sock.recvfrom(1200)
+            packet = parse_packet(data)
+
+            log_event(
+                "receive",
+                packet,
+                details=f"received from UDP endpoint {address}"
+            )
+
+            if packet["dst"] != virtual_address:
+                print(f"{device_name}: received a packet for another host")
+            elif packet["msg_type"] == RESPONSE:
+                print(f"{device_name} received:", packet["payload"].decode("utf-8"))
+
+        except socket.timeout:
+            log_event(
+                "timeout",
+                details=f"probe {msg_id} did not receive a reply within 5 seconds"
+            )
 
 elif mode == "listen":
     # The selected host waits for a request from its peer.
