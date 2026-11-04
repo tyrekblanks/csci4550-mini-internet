@@ -95,8 +95,17 @@ python3 router.py RouterD
 ### Hosts
 
 ```bash
-python3 host.py Host1
-python3 host.py Host2
+# Start one host as the listener
+python3 host.py Host2 listen 1
+
+# Start the other host as the sender
+python3 host.py Host1 send 1
+```
+
+The host command format is:
+
+```bash
+python3 host.py <device_name> <send|listen> [probe_count] [config_file]
 ```
 
 ## Static Routing and Packet Forwarding
@@ -128,23 +137,23 @@ This prevents packets caught in a routing loop from circulating indefinitely.
 
 Open separate terminals in the project directory. Start all four routers first:
 
-```powershell
-py router.py RouterA config_upper.json
-py router.py RouterB config_upper.json
-py router.py RouterC config_upper.json
-py router.py RouterD config_upper.json
+```bash
+python3 router.py RouterA config_upper.json
+python3 router.py RouterB config_upper.json
+python3 router.py RouterC config_upper.json
+python3 router.py RouterD config_upper.json
 ```
 
 Then start Host2 in a separate terminal:
 
-```powershell
-py host.py Host2 config_upper.json
+```bash
+python3 host.py Host2 listen 1 config_upper.json
 ```
 
 Finally, start Host1:
 
-```powershell
-py host.py Host1 config_upper.json
+```bash
+python3 host.py Host1 send 1 config_upper.json
 ```
 
 The expected request path is Host1 → RouterA → RouterB → RouterD → Host2. The response should return through RouterD → RouterB → RouterA to Host1.
@@ -153,23 +162,23 @@ The expected request path is Host1 → RouterA → RouterB → RouterD → Host2
 
 Stop all running routers and hosts before starting the next test. Start all four routers using the lower configuration:
 
-```powershell
-py router.py RouterA config_lower.json
-py router.py RouterB config_lower.json
-py router.py RouterC config_lower.json
-py router.py RouterD config_lower.json
+```bash
+python3 router.py RouterA config_lower.json
+python3 router.py RouterB config_lower.json
+python3 router.py RouterC config_lower.json
+python3 router.py RouterD config_lower.json
 ```
 
 Then start Host2:
 
-```powershell
-py host.py Host2 config_lower.json
+```bash
+python3 host.py Host2 listen 1 config_lower.json
 ```
 
 Start Host1 last:
 
-```powershell
-py host.py Host1 config_lower.json
+```bash
+python3 host.py Host1 send 1 config_lower.json
 ```
 
 The expected request path is Host1 → RouterA → RouterC → RouterD → Host2. The response should return through RouterD → RouterC → RouterA to Host1.
@@ -178,4 +187,44 @@ The expected request path is Host1 → RouterA → RouterC → RouterD → Host2
 
 ## Timeout Behavior
 
-Host1 waits up to 5 seconds for a response. If no response arrives within that period, it prints a timeout message. This allows the source host to detect a failed or unreachable path instead of waiting forever.
+A host operating in `send` mode waits up to 5 seconds for the response to each probe. If no response arrives within that period, the host records a structured timeout log containing the probe identifier.
+
+This behavior applies to either Host1 or Host2 when operating as the sender and allows the source host to detect missing responses or unreachable paths instead of waiting indefinitely.
+
+## Network Conditions and Core Checkpoint Testing
+
+Network conditions may be configured in `config.json`. A selected directed link may specify a packet-loss probability and additional delivery delay.
+
+Example:
+
+```json
+"network_conditions": {
+    "seed": 42,
+    "links": [
+        {
+            "from": "RouterA",
+            "to": "RouterB",
+            "loss_probability": 0.05,
+            "delay_ms": 100
+        }
+    ]
+}
+```
+
+The random seed makes packet-loss behavior reproducible. Delayed packets are scheduled for later delivery without blocking unrelated packet handling.
+
+Network events use structured logs that include the run ID, device, timestamp, message ID, message type, source, destination, hop limit, next hop, event type, and additional details.
+
+The core network checkpoint was tested for:
+
+- 20 request/response probes initiated by Host1
+- 20 request/response probes initiated by Host2
+- Upper static route through RouterB
+- Lower static route through RouterC
+- Forwarding-loop termination using the hop limit
+- Unknown-destination packet handling
+- Malformed-packet handling
+- Missing-response timeout behavior
+- Forced packet loss
+- Seeded random packet loss
+- Configurable delivery delay
