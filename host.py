@@ -4,8 +4,8 @@ import socket
 from datetime import datetime
 from packet import create_packet, parse_packet, REQUEST, RESPONSE
 
-if len(sys.argv) > 2:
-    config_file = sys.argv[2]
+if len(sys.argv) > 3:
+    config_file = sys.argv[3]
 else:
     config_file = "config.json"
 
@@ -13,10 +13,11 @@ with open(config_file, "r") as file:
     config = json.load(file)
 
 if len(sys.argv) < 2:
-    print("Usage: python3 host.py <device_name>")
+    print("Usage: python3 host.py <device_name> <send|listen> [config_file]")
     sys.exit()
 
 device_name = sys.argv[1]
+mode = sys.argv[2] if len(sys.argv) > 2 else "listen"
 devices = config["devices"]
 run_id = config.get("run_id", "default-run")
 
@@ -32,6 +33,13 @@ if device["type"] != "host":
 
 virtual_address = device["virtual_address"]
 udp_port = device["UDP_port"]
+
+if device_name == "Host1":
+    peer_address = 2
+    peer_name = "Host2"
+else:
+    peer_address = 1
+    peer_name = "Host1"
 
 def log_event(event, packet=None, details=None):
     timestamp = datetime.now().isoformat(timespec="seconds")
@@ -68,13 +76,13 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind(("127.0.0.1", udp_port))
 sock.settimeout(5.0)
 
-if device_name == "Host1":
-    # Host1 sends a request to Host2.
+if mode == "send":
+    # The selected host sends a request to its peer.
     message = b"hello router"
 
     packet_data = create_packet(
         src=virtual_address,
-        dst=2,
+        dst=peer_address,
         hop_limit=16,
         msg_type=REQUEST,
         msg_id=1,
@@ -89,7 +97,7 @@ if device_name == "Host1":
             "msg_id": 1,
             "msg_type": REQUEST,
             "src": virtual_address,
-            "dst": 2,
+            "dst": peer_address,
             "hop_limit": 16,
         },
         details=f"sent request to {neighbor_name}"
@@ -106,9 +114,9 @@ if device_name == "Host1":
         )
 
         if packet["dst"] != virtual_address:
-            print("Host1: received a packet for another host")
+            print(f"{device_name}: received a packet for another host")
         elif packet["msg_type"] == RESPONSE:
-            print("Host1 received:", packet["payload"].decode("utf-8"))
+            print(f"{device_name} received:", packet["payload"].decode("utf-8"))
 
     except socket.timeout:
         log_event(
@@ -116,9 +124,9 @@ if device_name == "Host1":
             details="did not receive a reply within 5 seconds"
         )
 
-elif device_name == "Host2":
-    # Host2 waits for a request from Host1.
-    print("Host2: waiting for a request")
+elif mode == "listen":
+    # The selected host waits for a request from its peer.
+    print(f"{device_name}: waiting for a request")
 
     while True:
         try:
@@ -132,15 +140,15 @@ elif device_name == "Host2":
             )
 
             if packet["dst"] != virtual_address:
-                print("Host2: packet is not addressed to me")
+                print(f"{device_name}: packet is not addressed to me")
                 continue
 
             if packet["msg_type"] != REQUEST:
-                print("Host2: ignoring a non-request packet")
+                print(f"{device_name}: ignoring a non-request packet")
                 continue
 
             print(
-                "Host2 received:",
+                f"{device_name} received:",
                 packet["payload"].decode("utf-8")
             )
 
@@ -150,7 +158,7 @@ elif device_name == "Host2":
                 hop_limit=16,
                 msg_type=RESPONSE,
                 msg_id=packet["msg_id"],
-                payload=b"Hello back from Host2!"
+                payload=f"Hello back from {device_name}!".encode("utf-8")
             )
 
             sock.sendto(
@@ -171,7 +179,7 @@ elif device_name == "Host2":
             )
 
         except socket.timeout:
-            print("Host2: still waiting for a request")
+            print(f"{device_name}: still waiting for a request")
 
         except ValueError as error:
-            print(f"Host2: discarded malformed packet: {error}")
+            print(f"{device_name}: discarded malformed packet: {error}")
