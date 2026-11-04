@@ -1,6 +1,7 @@
 import json
 import sys
 import socket
+from datetime import datetime
 from packet import create_packet, parse_packet, REQUEST, RESPONSE
 
 if len(sys.argv) > 2:
@@ -17,6 +18,7 @@ if len(sys.argv) < 2:
 
 device_name = sys.argv[1]
 devices = config["devices"]
+run_id = config.get("run_id", "default-run")
 
 if device_name not in devices:
     print(f"Error: device '{device_name}' not found in config")
@@ -31,6 +33,29 @@ if device["type"] != "host":
 virtual_address = device["virtual_address"]
 udp_port = device["UDP_port"]
 
+def log_event(event, packet=None, details=None):
+    timestamp = datetime.now().isoformat(timespec="seconds")
+
+    parts = [
+        f"run_id={run_id}",
+        f"device={device_name}",
+        f"timestamp={timestamp}",
+        f"event={event}",
+    ]
+
+    if packet is not None:
+        parts.extend([
+            f"msg_id={packet['msg_id']}",
+            f"msg_type={packet['msg_type']}",
+            f"src={packet['src']}",
+            f"dst={packet['dst']}",
+            f"hop_limit={packet['hop_limit']}",
+        ])
+
+    if details is not None:
+        parts.append(f"details={details}")
+
+    print(" | ".join(parts))
 
 neighbors = device["neighbors"]
 neighbor_name = neighbors[0]
@@ -57,11 +82,28 @@ if device_name == "Host1":
     )
 
     sock.sendto(packet_data, (neighbor_host, neighbor_port))
-    print("Host1: request sent to Host2")
+
+    log_event(
+        "send",
+        {
+            "msg_id": 1,
+            "msg_type": REQUEST,
+            "src": virtual_address,
+            "dst": 2,
+            "hop_limit": 16,
+        },
+        details=f"sent request to {neighbor_name}"
+    )
 
     try:
         data, address = sock.recvfrom(1200)
         packet = parse_packet(data)
+
+        log_event(
+            "receive",
+            packet,
+            details=f"received from UDP endpoint {address}"
+        )
 
         if packet["dst"] != virtual_address:
             print("Host1: received a packet for another host")
@@ -69,7 +111,10 @@ if device_name == "Host1":
             print("Host1 received:", packet["payload"].decode("utf-8"))
 
     except socket.timeout:
-        print("TIMEOUT: Host1 did not receive a reply within 5 seconds")
+        log_event(
+            "timeout",
+            details="did not receive a reply within 5 seconds"
+        )
 
 elif device_name == "Host2":
     # Host2 waits for a request from Host1.
@@ -79,6 +124,12 @@ elif device_name == "Host2":
         try:
             data, address = sock.recvfrom(1200)
             packet = parse_packet(data)
+
+            log_event(
+                "receive",
+                packet,
+                details=f"received from UDP endpoint {address}"
+            )
 
             if packet["dst"] != virtual_address:
                 print("Host2: packet is not addressed to me")
@@ -106,7 +157,18 @@ elif device_name == "Host2":
                 response_data,
                 ("127.0.0.1", neighbor_port)
             )
-            print("Host2: reply sent")
+
+            log_event(
+                "send",
+                {
+                    "msg_id": packet["msg_id"],
+                    "msg_type": RESPONSE,
+                    "src": virtual_address,
+                    "dst": packet["src"],
+                    "hop_limit": 16,
+                },
+                details=f"sent response to {neighbor_name}"
+            )
 
         except socket.timeout:
             print("Host2: still waiting for a request")

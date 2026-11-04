@@ -1,6 +1,9 @@
 import json
 import sys
 import socket
+import random
+import time
+import heapq
 from datetime import datetime
 from packet import parse_packet, create_packet
 
@@ -33,6 +36,15 @@ if device_name not in devices:
     print(f"Error: device '{device_name}' not found in config")
     sys.exit()
 
+run_id = config.get("run_id", "default-run")
+
+network_conditions = config.get("network_conditions", {})
+random_seed = network_conditions.get("seed")
+link_conditions = network_conditions.get("links", [])
+
+if random_seed is not None:
+    random.seed(random_seed)
+
 device = devices[device_name]
 
 if device["type"] != "router":
@@ -44,33 +56,83 @@ udp_port = device["UDP_port"]
 neighbors = device["neighbors"]
 routing_table = device.get("routes", {})
 
-#logging helper
-def log_discard(reason, packet=None):
+def log_event(event, packet=None, next_hop=None, details=None):
     timestamp = datetime.now().isoformat(timespec="seconds")
 
-    if packet is None:
-        print(
-            f"[{timestamp}] DISCARD at {device_name}: {reason}"
-        )
-    else:
-        print(
-            f"[{timestamp}] DISCARD at {device_name}: {reason} | "
-            f"msg_id={packet['msg_id']} | "
-            f"src={packet['src']} | "
-            f"dst={packet['dst']} | "
-            f"hop_limit={packet['hop_limit']}"
-        )
+    parts = [
+        f"run_id={run_id}",
+        f"device={device_name}",
+        f"timestamp={timestamp}",
+        f"event={event}",
+    ]
+
+    if packet is not None:
+        parts.extend([
+            f"msg_id={packet['msg_id']}",
+            f"msg_type={packet['msg_type']}",
+            f"src={packet['src']}",
+            f"dst={packet['dst']}",
+            f"hop_limit={packet['hop_limit']}",
+        ])
+
+    if next_hop is not None:
+        parts.append(f"next_hop={next_hop}")
+
+    if details is not None:
+        parts.append(f"details={details}")
+
+    print(" | ".join(parts))
+
+#logging helper
+def log_discard(reason, packet=None):
+    log_event(
+        "drop",
+        packet,
+        details=reason
+    )
 
 #socket setup
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind(("127.0.0.1", udp_port))
+sock.settimeout(0.05)
+
+delayed_sends = []
 
 print(f"{device_name} listening on port {udp_port}")
 
 # Keep receiving packets until the router is stopped
 while True:
+    while delayed_sends and delayed_sends[0][0] <= time.monotonic():
+        (
+            send_time,
+            packet_to_send,
+            target_host,
+            target_port,
+            target_name,
+            original_packet,
+        ) = heapq.heappop(delayed_sends)
+
+        try:
+            sock.sendto(packet_to_send, (target_host, target_port))
+
+            log_event(
+                "send",
+                original_packet,
+                next_hop=target_name,
+                details=f"delayed send completed"
+            )
+        except OSError as error:
+            log_event(
+                "drop",
+                original_packet,
+                next_hop=target_name,
+                details=f"delayed send failed: {error}"
+            )
+        
     try:
         data, address = sock.recvfrom(1200)
+    except socket.timeout:
+        continue
     except OSError as error:
         print(f"{device_name}: socket receive error: {error}")
         continue
@@ -81,6 +143,12 @@ while True:
     except (ValueError, KeyError, TypeError) as error:
         log_discard(f"malformed packet: {error}")
         continue
+
+    log_event(
+        "receive",
+        packet,
+        details=f"received from UDP endpoint {address}"
+    )
 
     destination = packet["dst"]
     hop_limit = packet["hop_limit"]
@@ -115,6 +183,28 @@ while True:
         log_discard("next hop missing from configuration", packet)
         continue
 
+    link_condition = None
+
+    for condition in link_conditions:
+        if (
+            condition.get("from") == device_name
+            and condition.get("to") == next_hop_name
+        ):
+            link_condition = condition
+            break
+
+    if link_condition is not None:
+        loss_probability = link_condition.get("loss_probability", 0)
+
+        if random.random() < loss_probability:
+            log_event(
+                "drop",
+                packet,
+                next_hop=next_hop_name,
+                details=f"injected loss on {device_name}->{next_hop_name}"
+            )
+            continue
+
     # 5. Create the forwarded packet with a decremented hop limit
     try:
         forwarded_packet = create_packet(
@@ -130,15 +220,53 @@ while True:
         next_port = next_hop_device["UDP_port"]
 
         # 6. Forward the packet to the next hop
-        sock.sendto(forwarded_packet, (next_host, next_port))
+        delay_ms = 0
 
-        print(
-            f"{device_name}: forwarded packet to {next_hop_name}, "
-            f"destination={destination}, "
-            f"hop_limit={hop_limit - 1}"
-        )
+        if link_condition is not None:
+            delay_ms = link_condition.get("delay_ms", 0)
+
+        if delay_ms > 0:
+            send_time = time.monotonic() + (delay_ms / 1000.0)
+
+            heapq.heappush(
+                delayed_sends,
+                (
+                    send_time,
+                    forwarded_packet,
+                    next_host,
+                    next_port,
+                    next_hop_name,
+                    {
+                        **packet,
+                        "hop_limit": hop_limit - 1,
+                    }
+                )
+            )
+
+            log_event(
+                "delay",
+                packet,
+                next_hop=next_hop_name,
+                details=f"scheduled with {delay_ms} ms delay"
+            )
+
+        else:
+            sock.sendto(forwarded_packet, (next_host, next_port))
+
+            log_event(
+                "forward",
+                {
+                    **packet,
+                    "hop_limit": hop_limit - 1,
+                },
+                next_hop=next_hop_name,
+                details="packet forwarded"
+            )
 
     except (ValueError, KeyError, TypeError, OSError) as error:
-        print(
-            f"ERROR: forwarding failed at {device_name}: {error}"
+        log_event(
+            "drop",
+            packet,
+            next_hop=next_hop_name,
+            details=f"forwarding failed: {error}"
         )

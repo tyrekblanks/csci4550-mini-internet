@@ -1,4 +1,17 @@
 {
+    "run_id": "core-3.5-test",
+    "network_conditions": {
+        "seed": 42,
+        "links": [
+            {
+                "from": "RouterA",
+                "to": "RouterB",
+                "loss_probability": 0.05,
+                "delay_ms": 100
+            }
+        ]
+    },
+
     "devices": {
         "Host1": {
             "type":"host",
