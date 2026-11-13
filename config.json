@@ -12,6 +12,31 @@
         ]
     },
 
+    "topology": {
+        "links": [
+            {
+                "node1": "RouterA",
+                "node2": "RouterB",
+                "cost": 1
+            },
+            {
+                "node1": "RouterA",
+                "node2": "RouterC",
+                "cost": 1
+            },
+            {
+                "node1": "RouterB",
+                "node2": "RouterD",
+                "cost": 1
+            },
+            {
+                "node1": "RouterC",
+                "node2": "RouterD",
+                "cost": 1
+            }
+        ]
+    },
+
     "devices": {
         "Host1": {
             "type":"host",
