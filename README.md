@@ -11,13 +11,15 @@ First-day research:
 
 The network uses the following topology:
 
-```text
-Host1 -- RouterA -- RouterB -- RouterD -- Host2
-                  \         /
-                   RouterC
-```
+                RouterB
+               /       \
+Host1 -- RouterA      RouterD -- Host2
+               \       /
+                RouterC
 
 RouterA connects to both RouterB and RouterC, creating two possible paths toward RouterD.
+
+Router-to-router links have configurable positive costs. These costs are used by the routing algorithm to determine the shortest forwarding path.
 
 ## Packet Format
 Packets consist of a fixed 10-byte header followed by a payload with length 0-1,190 bytes. The maximum packet size is 1,200 bytes.
@@ -108,16 +110,38 @@ The host command format is:
 python3 host.py <device_name> <send|listen> [probe_count] [config_file]
 ```
 
-## Static Routing and Packet Forwarding
+## Dynamic Routing and Packet Forwarding
 
-Each router uses a static routing table from its configuration file. The routing table maps a destination virtual address to a list containing the name of the next-hop neighbor.
+Router-to-router forwarding paths are computed from the shared network topology using Dijkstra's shortest-path algorithm.
+
+The topology is defined in `config.json` using configurable positive link costs.
 
 Example:
 
 ```json
-"routes": {
-    "1": ["Host1"],
-    "2": ["RouterB"]
+"topology": {
+    "links": [
+        {
+            "node1": "RouterA",
+            "node2": "RouterB",
+            "cost": 1
+        },
+        {
+            "node1": "RouterA",
+            "node2": "RouterC",
+            "cost": 1
+        },
+        {
+            "node1": "RouterB",
+            "node2": "RouterD",
+            "cost": 1
+        },
+        {
+            "node1": "RouterC",
+            "node2": "RouterD",
+            "cost": 1
+        }
+    ]
 }
 ```
 
@@ -133,7 +157,7 @@ When a router receives a packet, it checks the hop limit before forwarding:
 
 This prevents packets caught in a routing loop from circulating indefinitely.
 
-## Running the Upper Path
+## Running the Static Upper Path
 
 Open separate terminals in the project directory. Start all four routers first:
 
@@ -158,7 +182,7 @@ python3 host.py Host1 send 1 config_upper.json
 
 The expected request path is Host1 → RouterA → RouterB → RouterD → Host2. The response should return through RouterD → RouterB → RouterA to Host1.
 
-## Running the Lower Path
+## Running the Static Lower Path
 
 Stop all running routers and hosts before starting the next test. Start all four routers using the lower configuration:
 
