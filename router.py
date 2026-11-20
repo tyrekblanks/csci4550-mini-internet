@@ -6,6 +6,7 @@ import time
 import heapq
 from datetime import datetime
 from packet import parse_packet, create_packet
+from routing import build_graph, build_routing_table
 
 if len(sys.argv) < 2:
     print("Usage: python3 router.py <device_name> [config_file]")
@@ -36,6 +37,15 @@ if device_name not in devices:
     print(f"Error: device '{device_name}' not found in config")
     sys.exit()
 
+topology = config["topology"]
+graph = build_graph(topology)
+computed_routes = build_routing_table(graph, device_name)
+
+host_router_map = {
+    1: "RouterA",
+    2: "RouterD"
+}
+
 run_id = config.get("run_id", "default-run")
 
 network_conditions = config.get("network_conditions", {})
@@ -54,7 +64,6 @@ if device["type"] != "router":
 virtual_address = device["virtual_address"]
 udp_port = device["UDP_port"]
 neighbors = device["neighbors"]
-routing_table = device.get("routes", {})
 
 def log_event(event, packet=None, next_hop=None, details=None):
     timestamp = datetime.now().isoformat(timespec="seconds")
@@ -151,6 +160,12 @@ while True:
     )
 
     destination = packet["dst"]
+    destination_router = host_router_map.get(destination)
+
+    if destination_router is None:
+        log_discard("unknown destination", packet)
+        continue
+
     hop_limit = packet["hop_limit"]
 
     # 2. Check the hop limit before forwarding
@@ -158,20 +173,16 @@ while True:
         log_discard("hop limit exhausted", packet)
         continue
 
-    # 3. Find the destination in the routing table.
-    # JSON object keys are strings, so convert the address.
-    next_hop = routing_table.get(str(destination))
-
-    if next_hop is None:
-        log_discard("unknown destination", packet)
-        continue
+    # 3. Determine the next hop using the computed routing table.
+    if destination_router == device_name:
+        next_hop_name = "Host1" if destination == 1 else "Host2"
+    else:
+        next_hop_name = computed_routes.get(destination_router)
 
     # 4. Get and validate the next-hop neighbor
-    if not isinstance(next_hop, list) or len(next_hop) == 0:
-        log_discard("invalid next hop", packet)
+    if next_hop_name is None:
+        log_discard("unknown destination", packet)
         continue
-
-    next_hop_name = next_hop[0]
 
     if next_hop_name not in neighbors:
         log_discard("invalid next hop", packet)
