@@ -11,11 +11,13 @@ First-day research:
 
 The network uses the following topology:
 
-                RouterB
-               /       \
-Host1 -- RouterA      RouterD -- Host2
-               \       /
-                RouterC
+```text
+          RouterB
+         /       \
+Host1 -- RouterA   RouterD -- Host2
+         \       /
+          RouterC
+```
 
 RouterA connects to both RouterB and RouterC, creating two possible paths toward RouterD.
 
