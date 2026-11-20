@@ -43,6 +43,12 @@ def dijkstra(graph, start):
                 previous[neighbor] = current_router
                 heapq.heappush(priority_queue, (new_distance, neighbor))
 
+            elif new_distance == distances[neighbor]:
+                current_previous = previous.get(neighbor)
+
+                if current_previous is None or current_router < current_previous:
+                    previous[neighbor] = current_router
+
     return distances, previous
 
 def get_next_hop(previous, start, destination):
@@ -70,16 +76,3 @@ def build_routing_table(graph, start):
             routing_table[destination] = next_hop
 
     return routing_table
-
-if __name__ == "__main__":
-    test_topology = {
-        "links": [
-            {"node1": "RouterA", "node2": "RouterB", "cost": 1},
-            {"node1": "RouterA", "node2": "RouterC", "cost": 1},
-            {"node1": "RouterB", "node2": "RouterD", "cost": 1},
-            {"node1": "RouterC", "node2": "RouterD", "cost": 1}
-        ]
-    }
-
-    graph = build_graph(test_topology)
-    print(build_routing_table(graph, "RouterA"))
