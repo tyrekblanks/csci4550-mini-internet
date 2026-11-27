@@ -1,0 +1,6 @@
+py router.py RouterA config_delayed_failure.json
+RouterA listening on port 5003
+run_id=core-3.5-test | device=RouterA | timestamp=2026-11-27T08:04:17 | event=receive | msg_id=1 | msg_type=1 | src=1 | dst=2 | hop_limit=16 | details=received from UDP endpoint ('127.0.0.1', 5001)
+run_id=core-3.5-test | device=RouterA | timestamp=2026-11-27T08:04:17 | event=delay | msg_id=1 | msg_type=1 | src=1 | dst=2 | hop_limit=16 | next_hop=RouterB | details=scheduled with 3000 ms delay
+run_id=core-3.5-test | device=RouterA | timestamp=2026-11-27T08:04:18 | event=link_state_change | details=Updated failed links: [{'from': 'RouterA', 'to': 'RouterB'}]
+run_id=core-3.5-test | device=RouterA | timestamp=2026-11-27T08:04:20 | event=drop | msg_id=1 | msg_type=1 | src=1 | dst=2 | hop_limit=15 | next_hop=RouterB | details=link failure: RouterA<-> RouterB

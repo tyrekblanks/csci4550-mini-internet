@@ -1,0 +1,21 @@
+py router.py RouterA config.json
+RouterA listening on port 5003
+run_id=core-3.5-test | device=RouterA | timestamp=2026-11-25T20:24:43 | event=receive | msg_id=1 | msg_type=1 | src=1 | dst=2 | hop_limit=16 | details=received from UDP endpoint ('127.0.0.1', 5001)
+run_id=core-3.5-test | device=RouterA | timestamp=2026-11-25T20:24:43 | event=delay | msg_id=1 | msg_type=1 | src=1 | dst=2 | hop_limit=16 | next_hop=RouterB | details=scheduled with 100 ms delay
+run_id=core-3.5-test | device=RouterA | timestamp=2026-11-25T20:24:43 | event=send | msg_id=1 | msg_type=1 | src=1 | dst=2 | hop_limit=15 | next_hop=RouterB | details=delayed send completed
+run_id=core-3.5-test | device=RouterA | timestamp=2026-11-25T20:24:43 | event=receive | msg_id=1 | msg_type=2 | src=2 | dst=1 | hop_limit=14 | details=received from UDP endpoint ('127.0.0.1', 5004)
+run_id=core-3.5-test | device=RouterA | timestamp=2026-11-25T20:24:43 | event=forward | msg_id=1 | msg_type=2 | src=2 | dst=1 | hop_limit=13 | next_hop=Host1 | details=packet forwarded
+run_id=core-3.5-test | device=RouterA | timestamp=2026-11-25T20:24:43 | event=receive | msg_id=2 | msg_type=1 | src=1 | dst=2 | hop_limit=16 | details=received from UDP endpoint ('127.0.0.1', 5001)
+run_id=core-3.5-test | device=RouterA | timestamp=2026-11-25T20:24:43 | event=drop | msg_id=2 | msg_type=1 | src=1 | dst=2 | hop_limit=16 | next_hop=RouterB | details=injected loss on RouterA->RouterB
+run_id=core-3.5-test | device=RouterA | timestamp=2026-11-25T20:24:48 | event=receive | msg_id=3 | msg_type=1 | src=1 | dst=2 | hop_limit=16 | details=received from UDP endpoint ('127.0.0.1', 5001)
+run_id=core-3.5-test | device=RouterA | timestamp=2026-11-25T20:24:48 | event=delay | msg_id=3 | msg_type=1 | src=1 | dst=2 | hop_limit=16 | next_hop=RouterB | details=scheduled with 100 ms delay
+run_id=core-3.5-test | device=RouterA | timestamp=2026-11-25T20:24:48 | event=send | msg_id=3 | msg_type=1 | src=1 | dst=2 | hop_limit=15 | next_hop=RouterB | details=delayed send completed
+run_id=core-3.5-test | device=RouterA | timestamp=2026-11-25T20:24:48 | event=receive | msg_id=3 | msg_type=2 | src=2 | dst=1 | hop_limit=14 | details=received from UDP endpoint ('127.0.0.1', 5004)
+run_id=core-3.5-test | device=RouterA | timestamp=2026-11-25T20:24:48 | event=forward | msg_id=3 | msg_type=2 | src=2 | dst=1 | hop_limit=13 | next_hop=Host1 | details=packet forwarded
+run_id=core-3.5-test | device=RouterA | timestamp=2026-11-25T20:27:40 | event=link_state_change | details=Updated failed links: [{'from': 'RouterA', 'to': 'RouterB'}]
+run_id=core-3.5-test | device=RouterA | timestamp=2026-11-25T20:43:34 | event=receive | msg_id=1 | msg_type=1 | src=1 | dst=2 | hop_limit=16 | details=received from UDP endpoint ('127.0.0.1', 5001)
+run_id=core-3.5-test | device=RouterA | timestamp=2026-11-25T20:43:34 | event=drop | msg_id=1 | msg_type=1 | src=1 | dst=2 | hop_limit=16 | next_hop=RouterB | details=link failure: RouterA<-> RouterB
+run_id=core-3.5-test | device=RouterA | timestamp=2026-11-25T20:43:39 | event=receive | msg_id=2 | msg_type=1 | src=1 | dst=2 | hop_limit=16 | details=received from UDP endpoint ('127.0.0.1', 5001)
+run_id=core-3.5-test | device=RouterA | timestamp=2026-11-25T20:43:39 | event=drop | msg_id=2 | msg_type=1 | src=1 | dst=2 | hop_limit=16 | next_hop=RouterB | details=link failure: RouterA<-> RouterB
+run_id=core-3.5-test | device=RouterA | timestamp=2026-11-25T20:43:44 | event=receive | msg_id=3 | msg_type=1 | src=1 | dst=2 | hop_limit=16 | details=received from UDP endpoint ('127.0.0.1', 5001)
+run_id=core-3.5-test | device=RouterA | timestamp=2026-11-25T20:43:44 | event=drop | msg_id=3 | msg_type=1 | src=1 | dst=2 | hop_limit=16 | next_hop=RouterB | details=link failure: RouterA<-> RouterB

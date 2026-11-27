@@ -51,6 +51,8 @@ run_id = config.get("run_id", "default-run")
 network_conditions = config.get("network_conditions", {})
 random_seed = network_conditions.get("seed")
 link_conditions = network_conditions.get("links", [])
+failed_links = config.get("failed_links", [])
+failure_file = "link_failures.json"
 
 if random_seed is not None:
     random.seed(random_seed)
@@ -100,6 +102,29 @@ def log_discard(reason, packet=None):
         details=reason
     )
 
+def read_failed_links():
+    try:
+        with open(failure_file, "r") as file:
+            failure_config = json.load(file)
+
+        return failure_config.get("failed_links", [])
+
+    except (OSError, json.JSONDecodeError):
+        return failed_links
+
+def is_link_failed(target_name):
+    return any(
+        (
+            failure.get("from") == device_name
+            and failure.get("to") == target_name
+        )
+        or (
+            failure.get("from") == target_name
+            and failure.get("to") == device_name
+        )
+        for failure in failed_links
+    )
+
 #socket setup
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind(("127.0.0.1", udp_port))
@@ -111,6 +136,16 @@ print(f"{device_name} listening on port {udp_port}")
 
 # Keep receiving packets until the router is stopped
 while True:
+    updated_failed_links = read_failed_links()
+
+    if updated_failed_links != failed_links:
+        failed_links = updated_failed_links
+
+        log_event(
+            "link_state_change",
+            details=f"Updated failed links: {failed_links}"
+        )
+
     while delayed_sends and delayed_sends[0][0] <= time.monotonic():
         (
             send_time,
@@ -121,6 +156,15 @@ while True:
             original_packet,
         ) = heapq.heappop(delayed_sends)
 
+        if is_link_failed(target_name):
+            log_event(
+                "drop",
+                original_packet,
+                next_hop=target_name,
+                details=f"link failure: {device_name}<-> {target_name}"
+            )
+            continue
+    
         try:
             sock.sendto(packet_to_send, (target_host, target_port))
 
@@ -192,6 +236,17 @@ while True:
 
     if next_hop_device is None:
         log_discard("next hop missing from configuration", packet)
+        continue
+
+    link_is_failed = is_link_failed(next_hop_name)
+
+    if link_is_failed:
+        log_event(
+            "drop",
+            packet,
+            next_hop=next_hop_name,
+            details=f"link failure: {device_name}<-> {next_hop_name}"
+    )
         continue
 
     link_condition = None

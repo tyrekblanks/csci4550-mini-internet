@@ -12,6 +12,8 @@
         ]
     },
 
+    "failed_links": [],
+
     "topology": {
         "links": [
             {
