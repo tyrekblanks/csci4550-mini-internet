@@ -1,0 +1,13 @@
+run_id=core-3.5-test | device=RouterB | timestamp=2026-11-26T10:33:37 | event=link_state_change | details=Updated failed links: []
+run_id=core-3.5-test | device=RouterB | timestamp=2026-11-26T10:34:54 | event=receive | msg_id=1 | msg_type=1 | src=2 | dst=1 | hop_limit=15 | details=received from UDP endpoint ('127.0.0.1', 5006)
+run_id=core-3.5-test | device=RouterB | timestamp=2026-11-26T10:34:54 | event=forward | msg_id=1 | msg_type=1 | src=2 | dst=1 | hop_limit=14 | next_hop=RouterA | details=packet forwarded
+run_id=core-3.5-test | device=RouterB | timestamp=2026-11-26T10:34:54 | event=receive | msg_id=1 | msg_type=2 | src=1 | dst=2 | hop_limit=15 | details=received from UDP endpoint ('127.0.0.1', 5003)
+run_id=core-3.5-test | device=RouterB | timestamp=2026-11-26T10:34:54 | event=forward | msg_id=1 | msg_type=2 | src=1 | dst=2 | hop_limit=14 | next_hop=RouterD | details=packet forwarded
+run_id=core-3.5-test | device=RouterB | timestamp=2026-11-26T10:34:54 | event=receive | msg_id=2 | msg_type=1 | src=2 | dst=1 | hop_limit=15 | details=received from UDP endpoint ('127.0.0.1', 5006)
+run_id=core-3.5-test | device=RouterB | timestamp=2026-11-26T10:34:54 | event=forward | msg_id=2 | msg_type=1 | src=2 | dst=1 | hop_limit=14 | next_hop=RouterA | details=packet forwarded
+run_id=core-3.5-test | device=RouterB | timestamp=2026-11-26T10:34:54 | event=receive | msg_id=2 | msg_type=2 | src=1 | dst=2 | hop_limit=15 | details=received from UDP endpoint ('127.0.0.1', 5003)
+run_id=core-3.5-test | device=RouterB | timestamp=2026-11-26T10:34:54 | event=forward | msg_id=2 | msg_type=2 | src=1 | dst=2 | hop_limit=14 | next_hop=RouterD | details=packet forwarded
+run_id=core-3.5-test | device=RouterB | timestamp=2026-11-26T10:34:54 | event=receive | msg_id=3 | msg_type=1 | src=2 | dst=1 | hop_limit=15 | details=received from UDP endpoint ('127.0.0.1', 5006)
+run_id=core-3.5-test | device=RouterB | timestamp=2026-11-26T10:34:54 | event=forward | msg_id=3 | msg_type=1 | src=2 | dst=1 | hop_limit=14 | next_hop=RouterA | details=packet forwarded
+run_id=core-3.5-test | device=RouterB | timestamp=2026-11-26T10:34:54 | event=receive | msg_id=3 | msg_type=2 | src=1 | dst=2 | hop_limit=15 | details=received from UDP endpoint ('127.0.0.1', 5003)
+run_id=core-3.5-test | device=RouterB | timestamp=2026-11-26T10:34:54 | event=forward | msg_id=3 | msg_type=2 | src=1 | dst=2 | hop_limit=14 | next_hop=RouterD | details=packet forwarded

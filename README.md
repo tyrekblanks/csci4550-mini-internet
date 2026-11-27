@@ -254,3 +254,144 @@ The core network checkpoint was tested for:
 - Forced packet loss
 - Seeded random packet loss
 - Configurable delivery delay
+
+### Dynamic Router-to-Router Link Failure
+
+The network supports dynamic router-to-router link
+failures through a shared `link_failures.json` file. Routers monitor this file during operation, allowing links to be disabled or restored without restarting any network devices.
+
+Each failed link is treated as bidirectional. Routers check the status of a link before forwarding packets and again before transmitting queued delayed packets. If the link is disabled, the packet is dropped and the failure is recorded in the router's log.
+
+Changes to the failed-links list are recorded using the `link_state_change` event.
+
+The default contents of `link_failures.json` are:
+
+    {
+        "failed_links": []
+    }
+
+To disable the connection between RouterA and RouterB, update the file to:
+
+    {
+        "failed_links": [
+            {
+                "from": "RouterA",
+                "to": "RouterB"
+            }
+        ]
+    }
+
+To restore the connection, reset the failed-links
+list to an empty list.
+
+This implementation handles link failure detection
+and prevents packet transmission across failed links.
+
+#### Testing Instructions
+
+Run all commands from the project root directory.
+
+**Test 1: Dynamic Link Failure**
+
+1. Ensure `link_failures.json` contains an empty
+   failed-links list.
+2. Start each router in a separate terminal:
+
+   ```powershell
+   py router.py RouterA config.json
+   py router.py RouterB config.json
+   py router.py RouterC config.json
+   py router.py RouterD config.json
+   ```
+
+3. Start Host2 as the listener:
+
+   ```powershell
+   py host.py Host2 listen 1 config.json
+   ```
+
+4. Send three baseline probes from Host1:
+
+   ```powershell
+   py host.py Host1 send 3 config.json
+   ```
+
+5. Disable the RouterA-RouterB link by updating
+   `link_failures.json` as described above.
+6. Confirm that the routers log a `link_state_change` event.
+7. Repeat the Host1 send command and verify that
+   all three probes time out and RouterA logs
+   link-failure drops.
+
+**Test 2: Reverse-Direction Link Failure**
+
+1. Keep the RouterA-RouterB link disabled.
+2. Stop the Host2 listener.
+3. Start Host1 as the listener:
+
+   ```powershell
+   py host.py Host1 listen 1 config.json
+   ```
+
+4. Send three probes from Host2:
+
+   ```powershell
+   py host.py Host2 send 3 config.json
+   ```
+
+5. Verify that all three probes time out and
+   RouterB logs link-failure drops.
+
+**Test 3: Link Restoration**
+
+1. Keep all routers and the Host1 listener      running.
+2. Reset `link_failures.json` to an empty
+   failed-links list.
+3. Confirm that the routers detect the change.
+4. Repeat the Host2 send command.
+5. Verify that communication resumes without
+   restarting the routers.
+
+**Test 4: Queued Delayed-Packet Failure**
+
+1. Stop all running network processes.
+2. Reset `link_failures.json` to an empty
+   failed-links list.
+3. Restart all four routers using
+   `config_delayed_failure.json`.
+4. Start Host2 as the listener using the same
+   configuration.
+5. Run the following PowerShell commands from
+   the Host1 terminal:
+
+   ```powershell
+   $probe = Start-Process py -ArgumentList "host.py Host1 send 1 config_delayed_failure.json" -NoNewWindow -PassThru
+   Start-Sleep -Milliseconds 1000
+   '{"failed_links":[{"from":"RouterA","to":"RouterB"}]}' | Set-Content -Encoding ascii link_failures.json
+   $probe.WaitForExit()
+   ```
+
+6. Verify that RouterA logs a scheduled delay,
+   a link-state change, and a packet drop rather
+   than completing the delayed transmission.
+7. Stop the network and reset `link_failures.json`
+   to an empty failed-links list.
+
+#### Test Results
+
+| Test | Successful Probes | Timeouts | Result |
+|---|---:|---:|---|
+| Baseline communication | 2/3 | 1 | Pass |
+| Forward-direction failure | 0/3 | 3 | Pass |
+| Reverse-direction failure | 0/3 | 3 | Pass |
+| Link restoration | 3/3 | 0 | Pass |
+| Queued delayed-packet failure | 0/1 | 1 | Pass |
+
+The baseline timeout was caused by the configured
+5% random packet loss rather than an intentional
+link failure.
+
+These results demonstrate that failed links prevent packet transmission in both directions, including packets already queued for delayed transmission. Communication resumes when the failed link is restored.
+
+Supporting logs are available in
+`test-evidence/4.1e-link-failure/`.

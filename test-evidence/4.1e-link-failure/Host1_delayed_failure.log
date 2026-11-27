@@ -1,0 +1,6 @@
+$probe = Start-Process py -ArgumentList "host.py Host1 send 1 config_delayed_failure.json" -NoNewWindow -PassThru
+>> Start-Sleep -Milliseconds 1000
+>> '{"failed_links":[{"from":"RouterA","to":"RouterB"}]}' | Set-Content -Encoding ascii link_failures.json
+>> $probe.WaitForExit()
+run_id=core-3.5-test | device=Host1 | timestamp=2026-11-27T08:04:17 | event=send | msg_id=1 | msg_type=1 | src=1 | dst=2 | hop_limit=16 | details=sent request to RouterA
+run_id=core-3.5-test | device=Host1 | timestamp=2026-11-27T08:04:22 | event=timeout | details=probe 1 did not receive a reply within 5 seconds

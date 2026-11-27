@@ -1,0 +1,10 @@
+py host.py Host2 send 3 config.json
+run_id=core-3.5-test | device=Host2 | timestamp=2026-11-26T10:34:54 | event=send | msg_id=1 | msg_type=1 | src=2 | dst=1 | hop_limit=16 | details=sent request to RouterD
+run_id=core-3.5-test | device=Host2 | timestamp=2026-11-26T10:34:54 | event=receive | msg_id=1 | msg_type=2 | src=1 | dst=2 | hop_limit=13 | details=received from UDP endpoint ('127.0.0.1', 5006)
+Host2 received: Hello back from Host1!
+run_id=core-3.5-test | device=Host2 | timestamp=2026-11-26T10:34:54 | event=send | msg_id=2 | msg_type=1 | src=2 | dst=1 | hop_limit=16 | details=sent request to RouterD
+run_id=core-3.5-test | device=Host2 | timestamp=2026-11-26T10:34:54 | event=receive | msg_id=2 | msg_type=2 | src=1 | dst=2 | hop_limit=13 | details=received from UDP endpoint ('127.0.0.1', 5006)
+Host2 received: Hello back from Host1!
+run_id=core-3.5-test | device=Host2 | timestamp=2026-11-26T10:34:54 | event=send | msg_id=3 | msg_type=1 | src=2 | dst=1 | hop_limit=16 | details=sent request to RouterD
+run_id=core-3.5-test | device=Host2 | timestamp=2026-11-26T10:34:54 | event=receive | msg_id=3 | msg_type=2 | src=1 | dst=2 | hop_limit=13 | details=received from UDP endpoint ('127.0.0.1', 5006)
+Host2 received: Hello back from Host1!
