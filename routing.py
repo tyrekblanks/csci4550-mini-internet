@@ -1,7 +1,10 @@
 import heapq
 
-def build_graph(topology):
+def build_graph(topology, failed_links=None):
     graph = {}
+
+    if failed_links is None:
+        failed_links = []
 
     for link in topology["links"]:
         node1 = link["node1"]
@@ -13,6 +16,21 @@ def build_graph(topology):
 
         if node2 not in graph:
             graph[node2] = []
+    
+        link_is_failed = any(
+            (
+                failure.get("from") == node1
+                and failure.get("to") == node2
+            )
+            or (
+                failure.get("from") == node2
+                and failure.get("to") == node1
+            )
+            for failure in failed_links
+        )
+
+        if link_is_failed:
+            continue
 
         graph[node1].append((node2, cost))
         graph[node2].append((node1, cost))

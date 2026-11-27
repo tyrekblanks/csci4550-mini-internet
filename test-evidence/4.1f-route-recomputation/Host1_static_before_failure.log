@@ -1,0 +1,10 @@
+py host.py Host1 send 3 config_static_test.json
+run_id=4.1f-static-test | device=Host1 | timestamp=2026-11-27T09:23:57 | event=send | msg_id=1 | msg_type=1 | src=1 | dst=2 | hop_limit=16 | details=sent request to RouterA
+run_id=4.1f-static-test | device=Host1 | timestamp=2026-11-27T09:23:57 | event=receive | msg_id=1 | msg_type=2 | src=2 | dst=1 | hop_limit=13 | details=received from UDP endpoint ('127.0.0.1', 5003)
+Host1 received: Hello back from Host2!
+run_id=4.1f-static-test | device=Host1 | timestamp=2026-11-27T09:23:57 | event=send | msg_id=2 | msg_type=1 | src=1 | dst=2 | hop_limit=16 | details=sent request to RouterA
+run_id=4.1f-static-test | device=Host1 | timestamp=2026-11-27T09:23:57 | event=receive | msg_id=2 | msg_type=2 | src=2 | dst=1 | hop_limit=13 | details=received from UDP endpoint ('127.0.0.1', 5003)
+Host1 received: Hello back from Host2!
+run_id=4.1f-static-test | device=Host1 | timestamp=2026-11-27T09:23:57 | event=send | msg_id=3 | msg_type=1 | src=1 | dst=2 | hop_limit=16 | details=sent request to RouterA
+run_id=4.1f-static-test | device=Host1 | timestamp=2026-11-27T09:23:57 | event=receive | msg_id=3 | msg_type=2 | src=2 | dst=1 | hop_limit=13 | details=received from UDP endpoint ('127.0.0.1', 5003)
+Host1 received: Hello back from Host2!

@@ -38,8 +38,7 @@ if device_name not in devices:
     sys.exit()
 
 topology = config["topology"]
-graph = build_graph(topology)
-computed_routes = build_routing_table(graph, device_name)
+adaptive_routing = config.get("adaptive_routing", False)
 
 host_router_map = {
     1: "RouterA",
@@ -125,6 +124,21 @@ def is_link_failed(target_name):
         for failure in failed_links
     )
 
+# Initialize routing table using the current link status
+failed_links = read_failed_links()
+
+if adaptive_routing:
+    graph = build_graph(topology, failed_links)
+else:
+    graph = build_graph(topology)
+
+computed_routes = build_routing_table(graph, device_name)
+
+log_event(
+    "routing_initialized",
+    details=f"adaptive_routing={adaptive_routing}, routes={computed_routes}"
+)
+
 #socket setup
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind(("127.0.0.1", udp_port))
@@ -145,6 +159,17 @@ while True:
             "link_state_change",
             details=f"Updated failed links: {failed_links}"
         )
+
+        if adaptive_routing:
+            previous_routes = computed_routes.copy()
+
+            graph = build_graph(topology, failed_links)
+            computed_routes = build_routing_table(graph, device_name)
+
+            log_event(
+                "routing_recomputed",
+                details=f"old_routes={previous_routes}, new_routes={computed_routes}"
+            )
 
     while delayed_sends and delayed_sends[0][0] <= time.monotonic():
         (
@@ -225,7 +250,7 @@ while True:
 
     # 4. Get and validate the next-hop neighbor
     if next_hop_name is None:
-        log_discard("unknown destination", packet)
+        log_discard(f"unreachable destination: no route to {destination_router}", packet)
         continue
 
     if next_hop_name not in neighbors:
