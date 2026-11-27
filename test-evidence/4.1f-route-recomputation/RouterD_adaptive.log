@@ -1,0 +1,45 @@
+py router.py RouterD config_adaptive_test.json
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:00:16 | event=routing_initialized | details=adaptive_routing=True, routes={'RouterA': 'RouterB', 'RouterB': 'RouterB', 'RouterC': 'RouterC'}
+RouterD listening on port 5006
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:01:12 | event=receive | msg_id=1 | msg_type=1 | src=1 | dst=2 | hop_limit=14 | details=received from UDP endpoint ('127.0.0.1', 5004)
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:01:12 | event=forward | msg_id=1 | msg_type=1 | src=1 | dst=2 | hop_limit=13 | next_hop=Host2 | details=packet forwarded
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:01:12 | event=receive | msg_id=1 | msg_type=2 | src=2 | dst=1 | hop_limit=16 | details=received from UDP endpoint ('127.0.0.1', 5002)
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:01:12 | event=forward | msg_id=1 | msg_type=2 | src=2 | dst=1 | hop_limit=15 | next_hop=RouterB | details=packet forwarded
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:01:13 | event=receive | msg_id=2 | msg_type=1 | src=1 | dst=2 | hop_limit=14 | details=received from UDP endpoint ('127.0.0.1', 5004)
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:01:13 | event=forward | msg_id=2 | msg_type=1 | src=1 | dst=2 | hop_limit=13 | next_hop=Host2 | details=packet forwarded
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:01:13 | event=receive | msg_id=2 | msg_type=2 | src=2 | dst=1 | hop_limit=16 | details=received from UDP endpoint ('127.0.0.1', 5002)
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:01:13 | event=forward | msg_id=2 | msg_type=2 | src=2 | dst=1 | hop_limit=15 | next_hop=RouterB | details=packet forwarded
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:01:13 | event=receive | msg_id=3 | msg_type=1 | src=1 | dst=2 | hop_limit=14 | details=received from UDP endpoint ('127.0.0.1', 5004)
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:01:13 | event=forward | msg_id=3 | msg_type=1 | src=1 | dst=2 | hop_limit=13 | next_hop=Host2 | details=packet forwarded
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:01:13 | event=receive | msg_id=3 | msg_type=2 | src=2 | dst=1 | hop_limit=16 | details=received from UDP endpoint ('127.0.0.1', 5002)
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:01:13 | event=forward | msg_id=3 | msg_type=2 | src=2 | dst=1 | hop_limit=15 | next_hop=RouterB | details=packet forwarded
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:05:41 | event=link_state_change | details=Updated failed links: [{'from': 'RouterA', 'to': 'RouterB'}]
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:05:41 | event=routing_recomputed | details=old_routes={'RouterA': 'RouterB', 'RouterB': 'RouterB', 'RouterC': 'RouterC'}, new_routes={'RouterA': 'RouterC', 'RouterB': 'RouterB', 'RouterC': 'RouterC'}
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:06:21 | event=receive | msg_id=1 | msg_type=1 | src=1 | dst=2 | hop_limit=14 | details=received from UDP endpoint ('127.0.0.1', 5005)
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:06:21 | event=forward | msg_id=1 | msg_type=1 | src=1 | dst=2 | hop_limit=13 | next_hop=Host2 | details=packet forwarded
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:06:21 | event=receive | msg_id=1 | msg_type=2 | src=2 | dst=1 | hop_limit=16 | details=received from UDP endpoint ('127.0.0.1', 5002)
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:06:21 | event=forward | msg_id=1 | msg_type=2 | src=2 | dst=1 | hop_limit=15 | next_hop=RouterC | details=packet forwarded
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:06:21 | event=receive | msg_id=2 | msg_type=1 | src=1 | dst=2 | hop_limit=14 | details=received from UDP endpoint ('127.0.0.1', 5005)
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:06:21 | event=forward | msg_id=2 | msg_type=1 | src=1 | dst=2 | hop_limit=13 | next_hop=Host2 | details=packet forwarded
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:06:21 | event=receive | msg_id=2 | msg_type=2 | src=2 | dst=1 | hop_limit=16 | details=received from UDP endpoint ('127.0.0.1', 5002)
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:06:21 | event=forward | msg_id=2 | msg_type=2 | src=2 | dst=1 | hop_limit=15 | next_hop=RouterC | details=packet forwarded
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:06:21 | event=receive | msg_id=3 | msg_type=1 | src=1 | dst=2 | hop_limit=14 | details=received from UDP endpoint ('127.0.0.1', 5005)
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:06:21 | event=forward | msg_id=3 | msg_type=1 | src=1 | dst=2 | hop_limit=13 | next_hop=Host2 | details=packet forwarded
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:06:21 | event=receive | msg_id=3 | msg_type=2 | src=2 | dst=1 | hop_limit=16 | details=received from UDP endpoint ('127.0.0.1', 5002)
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:06:21 | event=forward | msg_id=3 | msg_type=2 | src=2 | dst=1 | hop_limit=15 | next_hop=RouterC | details=packet forwarded
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:09:58 | event=link_state_change | details=Updated failed links: [{'from': 'RouterA', 'to': 'RouterB'}, {'from': 'RouterA', 'to': 'RouterC'}]
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:09:58 | event=routing_recomputed | details=old_routes={'RouterA': 'RouterC', 'RouterB': 'RouterB', 'RouterC': 'RouterC'}, new_routes={'RouterB': 'RouterB', 'RouterC': 'RouterC'}
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:13:04 | event=link_state_change | details=Updated failed links: []
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:13:04 | event=routing_recomputed | details=old_routes={'RouterB': 'RouterB', 'RouterC': 'RouterC'}, new_routes={'RouterA': 'RouterB', 'RouterB': 'RouterB', 'RouterC': 'RouterC'}
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:13:34 | event=receive | msg_id=1 | msg_type=1 | src=1 | dst=2 | hop_limit=14 | details=received from UDP endpoint ('127.0.0.1', 5004)
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:13:34 | event=forward | msg_id=1 | msg_type=1 | src=1 | dst=2 | hop_limit=13 | next_hop=Host2 | details=packet forwarded
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:13:34 | event=receive | msg_id=1 | msg_type=2 | src=2 | dst=1 | hop_limit=16 | details=received from UDP endpoint ('127.0.0.1', 5002)
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:13:34 | event=forward | msg_id=1 | msg_type=2 | src=2 | dst=1 | hop_limit=15 | next_hop=RouterB | details=packet forwarded
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:13:34 | event=receive | msg_id=2 | msg_type=1 | src=1 | dst=2 | hop_limit=14 | details=received from UDP endpoint ('127.0.0.1', 5004)
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:13:34 | event=forward | msg_id=2 | msg_type=1 | src=1 | dst=2 | hop_limit=13 | next_hop=Host2 | details=packet forwarded
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:13:34 | event=receive | msg_id=2 | msg_type=2 | src=2 | dst=1 | hop_limit=16 | details=received from UDP endpoint ('127.0.0.1', 5002)
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:13:34 | event=forward | msg_id=2 | msg_type=2 | src=2 | dst=1 | hop_limit=15 | next_hop=RouterB | details=packet forwarded
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:13:34 | event=receive | msg_id=3 | msg_type=1 | src=1 | dst=2 | hop_limit=14 | details=received from UDP endpoint ('127.0.0.1', 5004)
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:13:34 | event=forward | msg_id=3 | msg_type=1 | src=1 | dst=2 | hop_limit=13 | next_hop=Host2 | details=packet forwarded
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:13:34 | event=receive | msg_id=3 | msg_type=2 | src=2 | dst=1 | hop_limit=16 | details=received from UDP endpoint ('127.0.0.1', 5002)
+run_id=4.1f-adaptive-test | device=RouterD | timestamp=2026-11-27T09:13:34 | event=forward | msg_id=3 | msg_type=2 | src=2 | dst=1 | hop_limit=15 | next_hop=RouterB | details=packet forwarded

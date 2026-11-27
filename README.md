@@ -256,6 +256,8 @@ The core network checkpoint was tested for:
 - Configurable delivery delay
 
 ### Dynamic Router-to-Router Link Failure
+**Reproduction Note:** The original tests were performed using static routing. Set `adaptive_routing` to `false` in `config.json` before reproducing these tests. Restore it to
+`true` afterward to enable automatic route recomputation.
 
 The network supports dynamic router-to-router link
 failures through a shared `link_failures.json` file. Routers monitor this file during operation, allowing links to be disabled or restored without restarting any network devices.
@@ -395,3 +397,119 @@ These results demonstrate that failed links prevent packet transmission in both 
 
 Supporting logs are available in
 `test-evidence/4.1e-link-failure/`.
+
+### Automatic Route Recomputation
+
+#### Implementation
+
+Routers automatically recompute their forwarding tables when a router-to-router link fails or is restored.
+
+- Updated `build_graph()` in `routing.py` to exclude failed links while preserving disconnected routers in the graph.
+- Routers monitor the shared `link_failures.json` file for changes in link status.
+- When a change is detected, routers rebuild the topology graph and rerun Dijkstra's shortest-path algorithm.
+- Added an `adaptive_routing` configuration option to allow comparison between static and adaptive routing.
+- Packets are discarded with an explicit unreachable-destination message when no available route exists.
+- Routing initialization and recomputation events are recorded in the router logs.
+
+#### Reproducing the Tests
+
+Two configurations are provided:
+
+- `config_adaptive_test.json`: Adaptive routing enabled.
+- `config_static_test.json`: Adaptive routing disabled.
+
+Both configurations use 0% random packet loss and a configured 100 ms delay from RouterA to RouterB.
+
+Before starting, ensure `link_failures.json` contains:
+
+```json
+{
+    "failed_links": []
+}
+```
+
+Start each router in a separate terminal:
+
+```powershell
+py router.py RouterA config_adaptive_test.json
+py router.py RouterB config_adaptive_test.json
+py router.py RouterC config_adaptive_test.json
+py router.py RouterD config_adaptive_test.json
+```
+
+Start the Host2 listener:
+
+```powershell
+py host.py Host2 listen 1 config_adaptive_test.json
+```
+
+Send three probes from Host1:
+
+```powershell
+py host.py Host1 send 3 config_adaptive_test.json
+```
+
+To introduce a link failure, update `link_failures.json`:
+
+```json
+{
+    "failed_links": [
+        {
+            "from": "RouterA",
+            "to": "RouterB"
+        }
+    ]
+}
+```
+
+Send another three probes without restarting the routers. Adaptive routing should automatically switch to RouterC.
+
+To test an unreachable destination, disable both the RouterA-RouterB and RouterA-RouterC links:
+
+```json
+{
+    "failed_links": [
+        {
+            "from": "RouterA",
+            "to": "RouterB"
+        },
+        {
+            "from": "RouterA",
+            "to": "RouterC"
+        }
+    ]
+}
+```
+
+Send another three probes. All probes should time out because RouterA has no available route to RouterD.
+
+Restore both links by setting `failed_links` to an empty list. Send three more probes to verify that the original route is restored.
+
+For the static routing comparison, stop all processes, reset the failure file, and repeat the baseline and single-link failure tests using `config_static_test.json` instead.
+
+#### Functional Test Results
+
+| Routing Mode | Network Condition | Next Hop | Responses | Timeouts | Success Rate |
+|---|---|---|---|---|---|
+| Adaptive | Normal | RouterB | 3/3 | 0 | 100% |
+| Adaptive | A-B failure | RouterC | 3/3 | 0 | 100% |
+| Adaptive | A-B and A-C failure | None | 0/3 | 3 | 0% |
+| Adaptive | Links restored | RouterB | 3/3 | 0 | 100% |
+| Static | Normal | RouterB | 3/3 | 0 | 100% |
+| Static | A-B failure | RouterB | 0/3 | 3 | 0% |
+
+#### Analysis
+
+Adaptive routing successfully maintained communication between Host1 and Host2 after the RouterA-RouterB link failed by automatically selecting the alternate path through RouterC.
+
+Static routing continued selecting RouterB after the failure, causing all three probes to time out. When both available paths were disabled, adaptive routing correctly identified the
+destination as unreachable.
+
+Restoring the failed links allowed the adaptive routers to recompute their original forwarding tables without restarting.
+
+These results demonstrate functional correctness. Repeated quantitative experiments and recovery-time measurements will be conducted during the experimental evaluation.
+
+#### Test Evidence
+
+Logs for these tests are available in:
+`test-evidence/4.1f-route-recomputation/`

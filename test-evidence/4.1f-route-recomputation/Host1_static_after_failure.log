@@ -1,0 +1,7 @@
+py host.py Host1 send 3 config_static_test.json
+run_id=4.1f-static-test | device=Host1 | timestamp=2026-11-27T09:24:51 | event=send | msg_id=1 | msg_type=1 | src=1 | dst=2 | hop_limit=16 | details=sent request to RouterA
+run_id=4.1f-static-test | device=Host1 | timestamp=2026-11-27T09:24:56 | event=timeout | details=probe 1 did not receive a reply within 5 seconds
+run_id=4.1f-static-test | device=Host1 | timestamp=2026-11-27T09:24:56 | event=send | msg_id=2 | msg_type=1 | src=1 | dst=2 | hop_limit=16 | details=sent request to RouterA
+run_id=4.1f-static-test | device=Host1 | timestamp=2026-11-27T09:25:01 | event=timeout | details=probe 2 did not receive a reply within 5 seconds
+run_id=4.1f-static-test | device=Host1 | timestamp=2026-11-27T09:25:01 | event=send | msg_id=3 | msg_type=1 | src=1 | dst=2 | hop_limit=16 | details=sent request to RouterA
+run_id=4.1f-static-test | device=Host1 | timestamp=2026-11-27T09:25:06 | event=timeout | details=probe 3 did not receive a reply within 5 seconds
